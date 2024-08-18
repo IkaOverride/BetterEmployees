@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BetterEmployees
 {
-    [BepInPlugin("ika.betteremployees", "BetterEmployees", "0.1.0")]
+    [BepInPlugin("ika.betteremployees", "BetterEmployees", "0.1.1")]
     public class BetterEmployees : BaseUnityPlugin
     {
         internal static new ManualLogSource Logger;
