@@ -17,25 +17,25 @@ namespace BetterEmployees
 
         private static ModEntry Instance { get; set; }
 
-        private ConfigEntry<bool> ConfigEmployeeCollisions;
-
         private ConfigEntry<bool> ConfigStorageSaveOrder;
 
         private ConfigEntry<EmployeeStorageMode> ConfigStorageEmployeeMode;
 
         private ConfigEntry<bool> ConfigStorageCanEmployeeUpdateOrder;
 
+        private ConfigEntry<bool> ConfigEmployeeCollisions;
+
         private ConfigEntry<bool> ConfigRestockerProductPriority;
 
         private ConfigEntry<bool> ConfigRestockerJobs;
-
-        public static bool EmployeeCollisions => Instance.ConfigEmployeeCollisions.Value;
 
         public static bool StorageSaveOrder => Instance.ConfigStorageSaveOrder.Value;
 
         public static EmployeeStorageMode StorageEmployeeMode => Instance.ConfigStorageEmployeeMode.Value;
 
         public static bool StorageCanEmployeeUpdateOrder => Instance.ConfigStorageCanEmployeeUpdateOrder.Value;
+
+        public static bool EmployeeCollisions => Instance.ConfigEmployeeCollisions.Value;
 
         public static bool RestockerProductPriority => Instance.ConfigRestockerProductPriority.Value;
 
@@ -46,17 +46,17 @@ namespace BetterEmployees
             Instance = this;
             Logger = base.Logger;
 
-            ConfigEmployeeCollisions = Config.Bind("General", "Collisions", true, "Should employees have collisions.");
-
             ConfigStorageSaveOrder = Config.Bind("Storage", "SaveOrder", true, "Should the storage order be saved.");
-            ConfigStorageCanEmployeeUpdateOrder = Config.Bind("Storage", "EmployeeUpdateOrder", false, "Can employees update the storage order.");
+            ConfigStorageCanEmployeeUpdateOrder = Config.Bind("Storage", "CanEmployeeUpdateOrder", false, "Can employees update the storage order.");
             ConfigStorageEmployeeMode = Config.Bind("Storage", "EmployeeMode", EmployeeStorageMode.AllowFullyEmpty, 
                 "ForceOrder: If the employee can't respect the order, they will drop the box.\n" +
                 "AllowFullyEmpty: If the employee can't respect the order, they will put the box in a storage that is not reserved.\n" +
                 "AllowEmpty: If the employee can't respect the order and all storages are reserved for other products, they will put the box in a random empty storage.");
 
+            ConfigEmployeeCollisions = Config.Bind("Employee", "Collisions", true, "Should employees have collisions.");
+
             ConfigRestockerProductPriority = Config.Bind("RestockerEmployee", "ProductPriority", true, "Should restockers prioritize more empty shelves to restock.");
-            ConfigRestockerJobs = Config.Bind("RestockerEmployee", "Jobs", true, "Should restockers check what others are already restocking and not restock these products.");
+            ConfigRestockerJobs = Config.Bind("RestockerEmployee", "Jobs", true, "Should restockers check what others are already restocking to not do the same task.");
 
             Harmony = new("ika.betteremployees");
             
