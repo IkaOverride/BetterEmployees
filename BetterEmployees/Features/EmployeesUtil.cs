@@ -1,32 +1,21 @@
-﻿using BepInEx;
-using BepInEx.Logging;
+﻿using BetterEmployees.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace BetterEmployees
+namespace BetterEmployees.Features
 {
-    [BepInPlugin("ika.betteremployees", "BetterEmployees", "0.1.1")]
-    public class BetterEmployees : BaseUnityPlugin
+    public static class EmployeesUtil
     {
-        internal static new ManualLogSource Logger;
+        // Container, productInfoArray
+        public static Dictionary<Data_Container, int[]> SavedStorageShelves = [];
 
-        internal static HarmonyLib.Harmony Harmony;
-
-        private void Awake()
-        {
-            Logger = base.Logger;
-            Harmony = new("ika.betteremployees");
-            Harmony.PatchAll();
-        }
+        // employeeIndex, (shelfId, shelfProductIndex)
+        // todo: employeeIndex, shelfProductIndex
+        public static Dictionary<int, Tuple<int, int>> RestockerJobs = [];
 
         public static bool ShouldScan(int employeeIndex) => NPC_Manager.Instance.checkoutOBJ.transform.GetChild(employeeIndex).GetComponent<Data_Container>().productsLeft > 0;
-
-        /* Storage containers */
-
-        // Container, saved productInfoArray
-        public static Dictionary<Data_Container, int[]> Containers = [];
 
         public static int GetEmployeeEmptyContainer(int employeeIndex)
         {
@@ -34,7 +23,7 @@ namespace BetterEmployees
 
             if (currentProduct == -1)
             {
-                Logger.LogError("Product ID was not found.");
+                ModEntry.Logger.LogError("Product ID was not found.");
                 return -1;
             }
 
@@ -51,7 +40,7 @@ namespace BetterEmployees
             if (storageManager.transform.childCount == 0)
                 return -1;
 
-            List<int> fullyEmptyContainers = [];
+            Dictionary<int, bool> emptyContainers = [];
 
             for (int childId = 0; childId < storageManager.childCount; childId++)
             {
@@ -59,14 +48,14 @@ namespace BetterEmployees
 
                 int[] realProductArray = storage.productInfoArray;
 
-                if (!Containers.ContainsKey(storage))
-                    Containers.Add(storage, [.. storage.productInfoArray]);
+                if (!SavedStorageShelves.ContainsKey(storage))
+                    SavedStorageShelves.Add(storage, [.. storage.productInfoArray]);
 
-                int[] savedProductArray = Containers[storage];
+                int[] savedProductArray = SavedStorageShelves[storage];
 
                 if (realProductArray.Length != savedProductArray.Length)
                 {
-                    Logger.LogError("Product arrays are different in length. Real: " + string.Join(", ", realProductArray) + ". Saved: " + string.Join(", ", savedProductArray));
+                    ModEntry.Logger.LogError("Product arrays are different in length. Real: " + string.Join(", ", realProductArray) + ". Saved: " + string.Join(", ", savedProductArray));
                     continue;
                 }
 
@@ -74,16 +63,24 @@ namespace BetterEmployees
 
                 for (int slot = 0; slot < slotCount; slot++)
                 {
-                    if (savedProductArray[slot * 2] == -1 && !fullyEmptyContainers.Contains(childId))
-                        fullyEmptyContainers.Add(childId);
+                    if (realProductArray[slot * 2] == -1 && !emptyContainers.ContainsKey(childId))
+                        emptyContainers.Add(childId, savedProductArray[slot * 2] == -1);
 
                     if (savedProductArray[slot * 2] == currentProduct && realProductArray[slot * 2] == -1)
                         return childId;
                 }
             }
 
-            if (fullyEmptyContainers.Count != 0)
-                return fullyEmptyContainers.First();
+            if (ModEntry.StorageEmployeeMode != EmployeeStorageMode.ForceOrder)
+            {
+                List<int> fullyEmptyContainers = emptyContainers.Where(container => container.Value).Select(container => container.Key).ToList();
+                
+                if (fullyEmptyContainers.Count != 0)
+                    return fullyEmptyContainers.First();
+
+                if (ModEntry.StorageEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
+                    return emptyContainers.First().Key;
+            }
 
             return -1;
         }
@@ -96,7 +93,7 @@ namespace BetterEmployees
 
             if (currentProduct == -1)
             {
-                Logger.LogError("Box product ID was not found for the NPC.");
+                ModEntry.Logger.LogError("Box product ID was not found for the NPC.");
                 return -1;
             }
 
@@ -105,14 +102,14 @@ namespace BetterEmployees
 
             int[] realProductArray = storage.productInfoArray;
 
-            if (!Containers.ContainsKey(storage))
-                Containers.Add(storage, [.. storage.productInfoArray]);
+            if (!SavedStorageShelves.ContainsKey(storage))
+                SavedStorageShelves.Add(storage, [.. storage.productInfoArray]);
 
-            int[] savedProductArray = Containers[storage];
+            int[] savedProductArray = SavedStorageShelves[storage];
 
             if (realProductArray.Length != savedProductArray.Length)
             {
-                Logger.LogError("Product arrays are different in length. Real: " + string.Join(", ", realProductArray) + ". Saved: " + string.Join(", ", savedProductArray));
+                ModEntry.Logger.LogError("Product arrays are different in length. Real: " + string.Join(", ", realProductArray) + ". Saved: " + string.Join(", ", savedProductArray));
                 return -1;
             }
 
@@ -135,11 +132,6 @@ namespace BetterEmployees
             return -1;
         }
 
-        /* Restocker Jobs */
-
-        // employeeIndex, (shelfId, shelfProductIndex)
-        public static Dictionary<int, Tuple<int, int>> RestockerJobs = [];
-
         public static void AddRestockerJob(int employeeIndex, int[] job) => RestockerJobs[employeeIndex] = new Tuple<int, int>(job[0], job[1]);
 
         public static void RemoveRestockerJob(int employeeIndex) => RestockerJobs.Remove(employeeIndex);
@@ -147,10 +139,7 @@ namespace BetterEmployees
         public static void CleanupRestockerJob(int employeeIndex, int task)
         {
             if (RestockerJobs.ContainsKey(employeeIndex) && task != 2)
-            {
-                Logger.LogInfo("Job cleaned up");
                 RestockerJobs.Remove(employeeIndex);
-            }
         }
     }
 }

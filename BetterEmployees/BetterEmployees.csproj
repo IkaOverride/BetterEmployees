@@ -57,6 +57,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Packages\SMT\netstandard.dll</HintPath>
     </Reference>
+    <Reference Include="Rewired_Core">
+      <HintPath>..\..\..\Packages\SMT\Rewired_Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -69,17 +72,27 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Packages\SMT\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Packages\SMT\UnityEngine.AIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Packages\SMT\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Packages\SMT\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BetterEmployees.cs" />
-    <Compile Include="Patches\AIPatches.cs" />
-    <Compile Include="Patches\RestockPriority.cs" />
-    <Compile Include="Patches\SaveDefaultContainers.cs" />
-    <Compile Include="Patches\UpdateContainer.cs" />
+    <Compile Include="Enums\EmployeeStorageMode.cs" />
+    <Compile Include="Features\EmployeesUtil.cs" />
+    <Compile Include="ModEntry.cs" />
+    <Compile Include="Patches\EmployeeControl.cs" />
+    <Compile Include="Patches\ProductToRestock.cs" />
+    <Compile Include="Patches\EmployeeCollisions.cs" />
+    <Compile Include="Patches\SavedStorageUpdater.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

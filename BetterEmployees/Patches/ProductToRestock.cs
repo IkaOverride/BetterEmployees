@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BetterEmployees.Features;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Linq;
 namespace BetterEmployees.Patches
 {
     [HarmonyPatch(typeof(NPC_Manager), nameof(NPC_Manager.CheckProductAvailability))]
-    internal class RestockPriority
+    internal class ProductToRestock
     {
         private static bool Prefix(NPC_Manager __instance, ref int[] __result)
         {
@@ -27,7 +28,7 @@ namespace BetterEmployees.Patches
 
                 for (int shelfProductIndex = 0; shelfProductIndex < shelfProductsCount; shelfProductIndex++)
                 {
-                    if (BetterEmployees.RestockerJobs.ContainsValue(new Tuple<int, int>(shelfId, shelfProductIndex * 2)))
+                    if (ModEntry.RestockerJobs && EmployeesUtil.RestockerJobs.ContainsValue(new Tuple<int, int>(shelfId, shelfProductIndex * 2)))
                         continue;
 
                     int productID = shelfProducts[shelfProductIndex * 2];
@@ -80,7 +81,10 @@ namespace BetterEmployees.Patches
                 sameResults.ToList().ForEach(result2 => results[resultIndex] = new Tuple<float, int[]>(average, result2.Item2));
             }
 
-            __result = results.OrderBy(result => result.Item1).First().Item2;
+            if (ModEntry.RestockerProductPriority)
+                results = [.. results.OrderBy(result2 => result2.Item1)];
+
+            __result = results.FirstOrDefault()?.Item2 ?? [-1, -1, -1, -1, -1, -1];
             return false;
         }
     }
