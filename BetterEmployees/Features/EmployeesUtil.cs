@@ -63,11 +63,11 @@ namespace BetterEmployees.Features
 
                 for (int slot = 0; slot < slotCount; slot++)
                 {
-                    if (realProductArray[slot * 2] == -1 && !emptyContainers.ContainsKey(childId))
-                        emptyContainers.Add(childId, savedProductArray[slot * 2] == -1);
-
                     if (savedProductArray[slot * 2] == currentProduct && realProductArray[slot * 2] == -1)
                         return childId;
+
+                    if (realProductArray[slot * 2] == -1 && !emptyContainers.ContainsKey(childId))
+                        emptyContainers.Add(childId, savedProductArray[slot * 2] == -1);
                 }
             }
 
@@ -119,11 +119,11 @@ namespace BetterEmployees.Features
 
             for (int slot = 0; slot < slotCount; slot++)
             {
-                if (realProductArray[slot * 2] == -1 && !emptyContainers.ContainsKey(slot * 2))
-                    emptyContainers.Add(slot * 2, savedProductArray[slot * 2] == -1);
-
                 if (savedProductArray[slot * 2] == currentProduct && realProductArray[slot * 2] == -1)
                     return slot;
+
+                if (realProductArray[slot * 2] == -1 && !emptyContainers.ContainsKey(slot))
+                    emptyContainers.Add(slot, savedProductArray[slot * 2] == -1);
             }
 
             if (ModEntry.StorageOrderEmployeeMode != EmployeeStorageMode.ForceOrder)
