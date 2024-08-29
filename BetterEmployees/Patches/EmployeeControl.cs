@@ -53,7 +53,7 @@ namespace BetterEmployees.Patches
                     new CodeInstruction(OpCodes.Nop).WithLabels(skip)
                 );
 
-            if (ModEntry.StorageSaveOrder)
+            if (ModEntry.StorageOrderSave)
             {
                 // Storage employee check for empty containers
                 matcher

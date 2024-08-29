@@ -71,14 +71,14 @@ namespace BetterEmployees.Features
                 }
             }
 
-            if (ModEntry.StorageEmployeeMode != EmployeeStorageMode.ForceOrder)
+            if (ModEntry.StorageOrderEmployeeMode != EmployeeStorageMode.ForceOrder)
             {
                 var fullyEmptyContainers = emptyContainers.Where(container => container.Value);
                 
                 if (fullyEmptyContainers.Count() != 0)
                     return fullyEmptyContainers.First().Key;
 
-                if (ModEntry.StorageEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
+                if (ModEntry.StorageOrderEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
                     return emptyContainers.First().Key;
             }
 
@@ -126,14 +126,14 @@ namespace BetterEmployees.Features
                     return slot;
             }
 
-            if (ModEntry.StorageEmployeeMode != EmployeeStorageMode.ForceOrder)
+            if (ModEntry.StorageOrderEmployeeMode != EmployeeStorageMode.ForceOrder)
             {
                 var fullyEmptyContainers = emptyContainers.Where(container => container.Value);
 
                 if (fullyEmptyContainers.Count() != 0)
                     return fullyEmptyContainers.First().Key;
 
-                if (ModEntry.StorageEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
+                if (ModEntry.StorageOrderEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
                     return emptyContainers.First().Key;
             }
 
