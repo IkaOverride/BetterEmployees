@@ -46,7 +46,7 @@ namespace BetterEmployees
             Instance = this;
             Logger = base.Logger;
 
-            ConfigStorageOrderSave = Config.Bind("StorageOrder", "Enable", true, "Should the storage order be saved.");
+            ConfigStorageOrderSave = Config.Bind("StorageZone", "Order", true, "Should the storage order be saved.");
             ConfigStorageOrderCanEmployeeUpdate = Config.Bind("StorageOrder", "CanEmployeeUpdate", false, "Can employees update the storage order.");
             ConfigStorageOrderEmployeeMode = Config.Bind("StorageOrder", "EmployeeMode", EmployeeStorageMode.AllowFullyEmpty, 
                 "ForceOrder: If the employee can't respect the order, they will drop the box.\n" +
