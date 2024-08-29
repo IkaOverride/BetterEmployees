@@ -12,7 +12,7 @@ namespace BetterEmployees.Features
         public static Dictionary<Data_Container, int[]> SavedStorageShelves = [];
 
         // employeeIndex, (shelfId, shelfProductIndex)
-        // todo: employeeIndex, shelfProductIndex
+        // todo: employeeIndex, (productId, quantity)
         public static Dictionary<int, Tuple<int, int>> RestockerJobs = [];
 
         public static bool ShouldScan(int employeeIndex) => NPC_Manager.Instance.checkoutOBJ.transform.GetChild(employeeIndex).GetComponent<Data_Container>().productsLeft > 0;
@@ -73,10 +73,10 @@ namespace BetterEmployees.Features
 
             if (ModEntry.StorageEmployeeMode != EmployeeStorageMode.ForceOrder)
             {
-                List<int> fullyEmptyContainers = emptyContainers.Where(container => container.Value).Select(container => container.Key).ToList();
+                var fullyEmptyContainers = emptyContainers.Where(container => container.Value);
                 
-                if (fullyEmptyContainers.Count != 0)
-                    return fullyEmptyContainers.First();
+                if (fullyEmptyContainers.Count() != 0)
+                    return fullyEmptyContainers.First().Key;
 
                 if (ModEntry.StorageEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
                     return emptyContainers.First().Key;
@@ -115,19 +115,27 @@ namespace BetterEmployees.Features
 
             int slotCount = realProductArray.Length / 2;
 
-            List<int> fullyEmptyContainers = [];
+            Dictionary<int, bool> emptyContainers = [];
 
             for (int slot = 0; slot < slotCount; slot++)
             {
-                if (savedProductArray[slot * 2] == -1 && !fullyEmptyContainers.Contains(slot))
-                    fullyEmptyContainers.Add(slot);
+                if (realProductArray[slot * 2] == -1 && !emptyContainers.ContainsKey(slot * 2))
+                    emptyContainers.Add(slot * 2, savedProductArray[slot * 2] == -1);
 
                 if (savedProductArray[slot * 2] == currentProduct && realProductArray[slot * 2] == -1)
                     return slot;
             }
 
-            if (fullyEmptyContainers.Count != 0)
-                return fullyEmptyContainers.First();
+            if (ModEntry.StorageEmployeeMode != EmployeeStorageMode.ForceOrder)
+            {
+                var fullyEmptyContainers = emptyContainers.Where(container => container.Value);
+
+                if (fullyEmptyContainers.Count() != 0)
+                    return fullyEmptyContainers.First().Key;
+
+                if (ModEntry.StorageEmployeeMode == EmployeeStorageMode.AllowEmpty && emptyContainers.Count != 0)
+                    return emptyContainers.First().Key;
+            }
 
             return -1;
         }
