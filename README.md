@@ -21,3 +21,7 @@ SMT (Supermarket Together) BepInEx mod
 - Item scanner will also work for storage shelves
 - In between game restarts, employees will remember the storage order
 - Speed perk will also increase customers putting items, cashiers scanning items, and restockers putting item on shelves
+
+## Credits:
+- @IkaOverride
+- @Aeroluna - Disable collision feature
