@@ -7,17 +7,16 @@ namespace BetterEmployees.Patches
     {
         public static void UpdateIndex(Data_Container __instance, int index, int PID, int PNUMBER)
         {
-            if (!EmployeesUtil.SavedStorageShelves.ContainsKey(__instance))
-                EmployeesUtil.SavedStorageShelves.Add(__instance, [.. __instance.productInfoArray]);
+            int[] savedProductArray = ProductArray.Get(__instance);
 
             if (PID != -1)
             {
-                EmployeesUtil.SavedStorageShelves[__instance][index] = PID;
-                EmployeesUtil.SavedStorageShelves[__instance][index + 1] = PNUMBER;
+                savedProductArray[index] = PID;
+                savedProductArray[index + 1] = PNUMBER;
             } 
             else
             {
-                EmployeesUtil.SavedStorageShelves[__instance][index + 1] = PNUMBER;
+                savedProductArray[index + 1] = PNUMBER;
             }
         }
 
@@ -29,10 +28,7 @@ namespace BetterEmployees.Patches
                 return;
 
             for (int childId = 0; childId < storageManager.childCount; childId++)
-            {
-                Data_Container storage = storageManager.GetChild(childId).GetComponent<Data_Container>();
-                EmployeesUtil.SavedStorageShelves[storage] = [.. storage.productInfoArray];
-            }
+                ProductArray.Get(storageManager.GetChild(childId).GetComponent<Data_Container>());
         }
     }
 }

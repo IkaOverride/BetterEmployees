@@ -1,4 +1,6 @@
-﻿using BetterEmployees.Features;
+﻿using BetterEmployees.Extensions;
+using BetterEmployees.Features;
+using BetterEmployees.Features.Tasks;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -38,7 +40,7 @@ namespace BetterEmployees.Patches
                     // if (!ShouldScan(employeeIndex))
                     //     goto skip;
                     new CodeInstruction(OpCodes.Ldarg_1),
-                    new(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.ShouldScan))),
+                    new(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.ShouldScan))),
                     new(OpCodes.Brfalse_S, skip),
 
                     // component.state = 6;
@@ -53,63 +55,63 @@ namespace BetterEmployees.Patches
                     new CodeInstruction(OpCodes.Nop).WithLabels(skip)
                 );
 
-            if (ModEntry.StorageOrderSave)
-            {
-                // Storage employee check for empty containers
-                matcher
-                    .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.GetRandomGroundBox))))
-                    .Advance(1)
-                    .InsertAndAdvance(new CodeInstruction(OpCodes.Dup))
-                    .Advance(1)
-                    .RemoveInstructions(2)
-                    .Insert(new CodeInstruction(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.GetProductEmptyContainer))));
+            // Storage employee check for empty containers
+            matcher
+                .Start()
+                .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.GetRandomGroundBox))))
+                .Advance(-1)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_0).MoveLabelsFrom(matcher.Instruction))
+                .Advance(2)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Dup))
+                .Advance(1)
+                .RemoveInstructions(2)
+                .Insert(new CodeInstruction(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageContainer), [typeof(NPC_Info), typeof(int)])));
+            
+            // Restockers check for empty containers
+            matcher
+                .Start()
+                .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.GetFreeStorageContainer))))
+                .Repeat(matcher =>
+                {
+                    matcher
+                        .Advance(-1)
+                        .SetOpcodeAndAdvance(OpCodes.Ldloc_0)
+                        .SetAndAdvance(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageContainer), [typeof(NPC_Info)]));
+                });
 
-                // Restockers check for empty containers
-                matcher
-                    .Start()
-                    .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.GetFreeStorageContainer))))
-                    .Repeat(matcher =>
-                    {
-                        matcher
-                            .Advance(-1)
-                            .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
-                            .SetAndAdvance(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.GetEmployeeEmptyContainer)));
-                    });
-
-                matcher
-                    .Start()
-                    .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.GetFreeStorageRow))))
-                    .Repeat(matcher =>
-                    {
-                        matcher
-                            .Advance(-2)
-                            .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
-                            .SetOpcodeAndAdvance(OpCodes.Ldloc_S)
-                            .SetAndAdvance(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.GetEmptyRow)));
-                    });
-            }
+            matcher
+                .Start()
+                .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.GetFreeStorageRow))))
+                .Repeat(matcher =>
+                {
+                    matcher
+                        .Advance(-2)
+                        .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
+                        .SetOpcodeAndAdvance(OpCodes.Ldloc_S)
+                        .SetAndAdvance(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageRow)));
+                });
 
             // Restocker jobs
             if (ModEntry.RestockerJobs)
             {
                 matcher
-                .Start()
-                .MatchStartForward
-                (
-                    new(OpCodes.Ldloc_2),
-                    new(),
-                    new(OpCodes.Ldfld, Field(typeof(NPC_Manager), nameof(NPC_Manager.storageOBJ))),
-                    new(),
-                    new(),
-                    new(OpCodes.Ldfld, Field(typeof(NPC_Info), nameof(NPC_Info.productAvailableArray)))
-                )
-                .Insert
-                (
-                    new CodeInstruction(OpCodes.Ldarg_1).MoveLabelsFrom(matcher.Instruction),
-                    new(OpCodes.Ldloc_0),
-                    new(OpCodes.Ldfld, Field(typeof(NPC_Info), nameof(NPC_Info.productAvailableArray))),
-                    new(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.AddRestockerJob)))
-                );
+                    .Start()
+                    .MatchStartForward
+                    (
+                        new(OpCodes.Ldloc_2),
+                        new(),
+                        new(OpCodes.Ldfld, Field(typeof(NPC_Manager), nameof(NPC_Manager.storageOBJ))),
+                        new(),
+                        new(),
+                        new(OpCodes.Ldfld, Field(typeof(NPC_Info), nameof(NPC_Info.productAvailableArray)))
+                    )
+                    .Insert
+                    (
+                        new CodeInstruction(OpCodes.Ldarg_1).MoveLabelsFrom(matcher.Instruction),
+                        new(OpCodes.Ldloc_0),
+                        new(OpCodes.Ldfld, Field(typeof(NPC_Info), nameof(NPC_Info.productAvailableArray))),
+                        new(OpCodes.Call, Method(typeof(RestockingTask), nameof(RestockingTask.Set)))
+                    );
 
                 matcher
                     .Start()
@@ -120,7 +122,7 @@ namespace BetterEmployees.Patches
                     .Advance(-2)
                     .Insert(
                         new CodeInstruction(OpCodes.Ldarg_1).MoveLabelsFrom(matcher.Instruction),
-                        new(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.RemoveRestockerJob)))
+                        new(OpCodes.Call, Method(typeof(RestockingTask), nameof(RestockingTask.Remove)))
                     );
 
                 matcher
@@ -133,9 +135,11 @@ namespace BetterEmployees.Patches
                     .Insert(
                         new(OpCodes.Ldarg_1),
                         new(OpCodes.Ldloc_3),
-                        new(OpCodes.Call, Method(typeof(EmployeesUtil), nameof(EmployeesUtil.CleanupRestockerJob)))
+                        new(OpCodes.Call, Method(typeof(RestockingTask), nameof(RestockingTask.Cleanup)))
                     );
             }
+
+            ModEntry.Logger.LogInfo(string.Join("\n", matcher.Instructions()));
 
             return matcher.InstructionEnumeration();
         }

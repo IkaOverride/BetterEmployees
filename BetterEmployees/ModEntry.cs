@@ -8,7 +8,7 @@ using static HarmonyLib.AccessTools;
 
 namespace BetterEmployees
 {
-    [BepInPlugin("ika.betteremployees", "BetterEmployees", "0.2.0")]
+    [BepInPlugin("ika.betteremployees", "BetterEmployees", "0.3.0")]
     public class ModEntry : BaseUnityPlugin
     {
         internal static new ManualLogSource Logger;
@@ -19,7 +19,7 @@ namespace BetterEmployees
 
         private ConfigEntry<bool> ConfigStorageOrderSave;
 
-        private ConfigEntry<EmployeeStorageMode> ConfigStorageOrderEmployeeMode;
+        private ConfigEntry<StorageMode> ConfigStorageOrderEmployeeMode;
 
         private ConfigEntry<bool> ConfigStorageOrderCanEmployeeUpdate;
 
@@ -31,7 +31,7 @@ namespace BetterEmployees
 
         public static bool StorageOrderSave => Instance.ConfigStorageOrderSave.Value;
 
-        public static EmployeeStorageMode StorageOrderEmployeeMode => Instance.ConfigStorageOrderEmployeeMode.Value;
+        public static StorageMode StorageOrderEmployeeMode => Instance.ConfigStorageOrderEmployeeMode.Value;
 
         public static bool StorageOrderCanEmployeeUpdate => Instance.ConfigStorageOrderCanEmployeeUpdate.Value;
 
@@ -48,10 +48,10 @@ namespace BetterEmployees
 
             ConfigStorageOrderSave = Config.Bind("StorageZone", "Order", true, "Should the storage order be saved.");
             ConfigStorageOrderCanEmployeeUpdate = Config.Bind("StorageOrder", "CanEmployeeUpdate", false, "Can employees update the storage order.");
-            ConfigStorageOrderEmployeeMode = Config.Bind("StorageOrder", "EmployeeMode", EmployeeStorageMode.AllowFullyEmpty, 
-                "ForceOrder: If the employee can't respect the order, they will drop the box.\n" +
-                "AllowFullyEmpty: If the employee can't respect the order, they will put the box in a storage that is not reserved.\n" +
-                "AllowEmpty: If the employee can't respect the order and all storages are reserved for other products, they will put the box in a random empty storage.");
+            ConfigStorageOrderEmployeeMode = Config.Bind("StorageOrder", "EmployeeMode", StorageMode.EmptyButReserved, 
+                "InStorageOrder: The employee will always respect the storage order.\n" +
+                "FullyEmpty: If the employee can't respect the order, they will put the box in a storage that is not reserved.\n" +
+                "EmptyButReserved: If the employee didn't find any better storage to put the box, they will put the box in a random empty storage.");
 
             ConfigEmployeeCollisions = Config.Bind("Employee", "Collisions", true, "Should employees have collisions with each other.");
 
@@ -62,7 +62,7 @@ namespace BetterEmployees
             
             Harmony.PatchAll();
 
-            if (EmployeeCollisions)
+            if (!EmployeeCollisions)
                 Harmony.Patch
                 (
                     Method(typeof(NPC_Manager), nameof(NPC_Manager.SpawnEmployee)),

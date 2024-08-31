@@ -86,8 +86,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Enums\EmployeeStorageMode.cs" />
-    <Compile Include="Features\EmployeesUtil.cs" />
+    <Compile Include="Enums\StorageMode.cs" />
+    <Compile Include="Extensions\EmployeeExtensions.cs" />
+    <Compile Include="Features\Tasks\RestockingTask.cs" />
+    <Compile Include="Features\ProductArray.cs" />
+    <Compile Include="Features\StorageInfo.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="Patches\EmployeeControl.cs" />
     <Compile Include="Patches\ProductToRestock.cs" />
