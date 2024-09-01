@@ -1,5 +1,4 @@
 ﻿using BetterEmployees.Extensions;
-using BetterEmployees.Features;
 using BetterEmployees.Features.Tasks;
 using HarmonyLib;
 using System.Collections.Generic;
@@ -26,8 +25,7 @@ namespace BetterEmployees.Patches
                 .Repeat(matcher =>
                 {
                     matcher.SetOpcodeAndAdvance(OpCodes.Ldc_I4_M1);
-                })
-                .Instructions();
+                });
 
             Label skip = generator.DefineLabel();
 
@@ -76,7 +74,7 @@ namespace BetterEmployees.Patches
                     matcher
                         .Advance(-1)
                         .SetOpcodeAndAdvance(OpCodes.Ldloc_0)
-                        .SetAndAdvance(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageContainer), [typeof(NPC_Info)]));
+                        .SetOperandAndAdvance(Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageContainer), [typeof(NPC_Info)]));
                 });
 
             matcher
@@ -88,11 +86,20 @@ namespace BetterEmployees.Patches
                         .Advance(-2)
                         .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
                         .SetOpcodeAndAdvance(OpCodes.Ldloc_S)
-                        .SetAndAdvance(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageRow)));
+                        .SetOperandAndAdvance(Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageSlot)));
                 });
 
-            // Restocker jobs
-            if (ModEntry.RestockerJobs)
+            matcher
+                .Start()
+                .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.CheckProductAvailability))))
+                .Repeat(matcher =>
+                {
+                    matcher.InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_0));
+                    matcher.SetOperandAndAdvance(Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetProductToRestock)));
+                });
+
+            // Restocker tasks
+            if (ModEntry.RestockerTasks)
             {
                 matcher
                     .Start()
@@ -138,8 +145,6 @@ namespace BetterEmployees.Patches
                         new(OpCodes.Call, Method(typeof(RestockingTask), nameof(RestockingTask.Cleanup)))
                     );
             }
-
-            ModEntry.Logger.LogInfo(string.Join("\n", matcher.Instructions()));
 
             return matcher.InstructionEnumeration();
         }

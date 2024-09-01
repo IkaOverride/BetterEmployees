@@ -13,7 +13,7 @@ namespace BetterEmployees.Extensions
     {
         public static bool ShouldScan(int employeeIndex) => NPC_Manager.Instance.checkoutOBJ.transform.GetChild(employeeIndex).GetComponent<Data_Container>().productsLeft > 0;
 
-        public static int GetEmptyStorageContainer(NPC_Info employee)
+        public static int GetEmptyStorageContainer(this NPC_Info employee)
         {
             int productId = employee.boxProductID;
 
@@ -26,7 +26,7 @@ namespace BetterEmployees.Extensions
             return GetEmptyStorageContainer(employee, productId);
         }
 
-        public static int GetEmptyStorageContainer(NPC_Info employee, int productId)
+        public static int GetEmptyStorageContainer(this NPC_Info employee, int productId)
         {
             if (productId == -1)
                 return -1;
@@ -41,7 +41,7 @@ namespace BetterEmployees.Extensions
             for (int childId = 0; childId < storageManager.childCount; childId++)
             {
                 Data_Container storage = storageManager.GetChild(childId).GetComponent<Data_Container>();
-                Tuple<int, StorageMode>? storageSlot = GetBestStorageSlot((int)productId, storage);
+                Tuple<int, StorageMode>? storageSlot = storage.GetEmptyStorageSlot(productId);
 
                 if (storageSlot is not null && storageSlot.Item2 <= ModEntry.StorageOrderEmployeeMode)
                     emptyContainers.Add(childId, new(Vector3.Distance(employee.transform.position, storage.transform.position), storageSlot.Item2));
@@ -49,7 +49,7 @@ namespace BetterEmployees.Extensions
 
             emptyContainers = emptyContainers
                 .OrderBy(container => container.Value.Distance)
-                .OrderBy(container => container.Value.Mode)
+                .OrderBy(container => container.Value.EmptySlotMode)
                 .ToDictionary(x => x.Key, x => x.Value);
 
             if (emptyContainers.Count == 0)
@@ -58,11 +58,9 @@ namespace BetterEmployees.Extensions
             return emptyContainers.First().Key;
         }
 
-        public static int GetEmptyStorageRow(int employeeIndex, int storageContainerIndex)
+        public static int GetEmptyStorageSlot(this NPC_Info employee, int storageId)
         {
-            GameObject npcObject = NPC_Manager.Instance.employeeParentOBJ.transform.GetChild(employeeIndex).gameObject;
-            NPC_Info npcInfo = npcObject.GetComponent<NPC_Info>();
-            int currentProduct = npcInfo.boxProductID;
+            int currentProduct = employee.boxProductID;
 
             if (currentProduct == -1)
             {
@@ -71,9 +69,9 @@ namespace BetterEmployees.Extensions
             }
 
             Transform storageManager = NPC_Manager.Instance.storageOBJ.transform;
-            Data_Container storage = storageManager.GetChild(storageContainerIndex).GetComponent<Data_Container>();
+            Data_Container storage = storageManager.GetChild(storageId).GetComponent<Data_Container>();
 
-            Tuple<int, StorageMode>? storageSlot = GetBestStorageSlot(currentProduct, storage);
+            Tuple<int, StorageMode>? storageSlot = storage.GetEmptyStorageSlot(currentProduct);
 
             if (storageSlot is not null)
                 return storageSlot.Item1;
@@ -81,55 +79,27 @@ namespace BetterEmployees.Extensions
             return -1;
         }
 
-        public static Tuple<int, StorageMode>? GetBestStorageSlot(int productId, Data_Container storage)
+        public static int[] GetProductToRestock(this NPC_Info employee)
         {
-            Tuple<int, StorageMode>? value = null;
+            NPC_Manager npcManager = NPC_Manager.Instance;
+            Transform storageParent = npcManager.storageOBJ.transform;
+            Transform shelvesParent = npcManager.shelvesOBJ.transform;
 
-            int[] realProductArray = storage.productInfoArray;
-            int[] savedProductArray = ProductArray.Get(storage);
-
-            int slotCount = realProductArray.Length / 2;
-
-            if (ModEntry.StorageOrderSave)
-            {
-                for (int slot = 0; slot < slotCount; slot++)
-                {
-                    if (realProductArray[slot * 2] == -1 && savedProductArray[slot * 2] == productId)
-                        return new Tuple<int, StorageMode>(slot, StorageMode.InStorageOrder);
-
-                    if (realProductArray[slot * 2] == -1 && value?.Item2 != StorageMode.FullyEmpty)
-                        value = new Tuple<int, StorageMode>(slot, savedProductArray[slot * 2] == -1 ? StorageMode.FullyEmpty : StorageMode.EmptyButReserved);
-                }
-            }
-            else
-            {
-                for (int slot = 0; slot < slotCount; slot++)
-                {
-                    if (realProductArray[slot * 2] == -1)
-                        return new Tuple<int, StorageMode>(slot, StorageMode.InStorageOrder);
-                }
-            }
-
-            return value;
-        }
-
-        public static int[] GetProductToRestock(NPC_Manager manager)
-        {
-            if (manager.storageOBJ.transform.childCount == 0)
+            if (storageParent.childCount == 0)
                 return [-1, -1, -1, -1, -1, -1];
 
             // Percentage, value
             List<Tuple<float, int[]>> results = [];
 
-            for (int shelfId = 0; shelfId < manager.shelvesOBJ.transform.childCount; shelfId++)
+            for (int shelfId = 0; shelfId < shelvesParent.childCount; shelfId++)
             {
-                Data_Container shelfData = manager.shelvesOBJ.transform.GetChild(shelfId).GetComponent<Data_Container>();
+                Data_Container shelfData = shelvesParent.GetChild(shelfId).GetComponent<Data_Container>();
                 int[] shelfProducts = shelfData.productInfoArray;
                 int shelfProductsCount = shelfProducts.Length / 2;
 
                 for (int shelfProductIndex = 0; shelfProductIndex < shelfProductsCount; shelfProductIndex++)
                 {
-                    if (ModEntry.RestockerJobs && RestockingTask.Exists(shelfId, shelfProductIndex * 2))
+                    if (ModEntry.RestockerTasks && RestockingTask.Exists(shelfId, shelfProductIndex * 2))
                         continue;
 
                     int productID = shelfProducts[shelfProductIndex * 2];
@@ -138,14 +108,14 @@ namespace BetterEmployees.Extensions
                         continue;
 
                     int currentQuantity = shelfProducts[shelfProductIndex * 2 + 1];
-                    int maxQuantity = manager.GetMaxProductsPerRow(shelfId, productID);
+                    int maxQuantity = npcManager.GetMaxProductsPerRow(shelfId, productID);
 
                     if (currentQuantity >= maxQuantity)
                         continue;
 
-                    for (int storageId = 0; storageId < manager.storageOBJ.transform.childCount; storageId++)
+                    for (int storageId = 0; storageId < storageParent.childCount; storageId++)
                     {
-                        Data_Container storageData = manager.storageOBJ.transform.GetChild(storageId).GetComponent<Data_Container>();
+                        Data_Container storageData = storageParent.GetChild(storageId).GetComponent<Data_Container>();
                         int[] storageProductInfo = storageData.productInfoArray;
                         int storageProductsCount = storageProductInfo.Length / 2;
 

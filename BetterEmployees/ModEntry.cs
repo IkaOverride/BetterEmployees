@@ -27,7 +27,7 @@ namespace BetterEmployees
 
         private ConfigEntry<bool> ConfigRestockerProductPriority;
 
-        private ConfigEntry<bool> ConfigRestockerJobs;
+        private ConfigEntry<bool> ConfigRestockerTasks;
 
         public static bool StorageOrderSave => Instance.ConfigStorageOrderSave.Value;
 
@@ -39,7 +39,7 @@ namespace BetterEmployees
 
         public static bool RestockerProductPriority => Instance.ConfigRestockerProductPriority.Value;
 
-        public static bool RestockerJobs => Instance.ConfigRestockerJobs.Value;
+        public static bool RestockerTasks => Instance.ConfigRestockerTasks.Value;
 
         private void Awake()
         {
@@ -56,7 +56,7 @@ namespace BetterEmployees
             ConfigEmployeeCollisions = Config.Bind("Employee", "Collisions", true, "Should employees have collisions with each other.");
 
             ConfigRestockerProductPriority = Config.Bind("RestockerEmployee", "ProductPriority", true, "Should restockers prioritize more empty shelves to restock.");
-            ConfigRestockerJobs = Config.Bind("RestockerEmployee", "Jobs", true, "Should restockers check what others are already restocking to not do the same task.");
+            ConfigRestockerTasks = Config.Bind("RestockerEmployee", "Tasks", true, "Should restockers check what others are already restocking to not do the same task.");
 
             Harmony = new("ika.betteremployees");
             

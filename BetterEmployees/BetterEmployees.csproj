@@ -88,12 +88,12 @@
   <ItemGroup>
     <Compile Include="Enums\StorageMode.cs" />
     <Compile Include="Extensions\EmployeeExtensions.cs" />
+    <Compile Include="Extensions\StorageExtensions.cs" />
     <Compile Include="Features\Tasks\RestockingTask.cs" />
     <Compile Include="Features\ProductArray.cs" />
     <Compile Include="Features\StorageInfo.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="Patches\EmployeeControl.cs" />
-    <Compile Include="Patches\ProductToRestock.cs" />
     <Compile Include="Patches\EmployeeCollisions.cs" />
     <Compile Include="Patches\SavedStorageUpdater.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
