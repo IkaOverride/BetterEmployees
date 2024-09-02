@@ -16,7 +16,7 @@ namespace BetterEmployees.Extensions
 
             int slotCount = realProductArray.Length / 2;
 
-            if (ModEntry.StorageOrderSave)
+            if (ModEntry.SaveStorageOrder.Value)
             {
                 for (int slot = 0; slot < slotCount; slot++)
                 {

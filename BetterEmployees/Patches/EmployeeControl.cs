@@ -84,22 +84,26 @@ namespace BetterEmployees.Patches
                 {
                     matcher
                         .Advance(-2)
-                        .SetOpcodeAndAdvance(OpCodes.Ldarg_1)
+                        .SetOpcodeAndAdvance(OpCodes.Ldloc_0)
                         .SetOpcodeAndAdvance(OpCodes.Ldloc_S)
                         .SetOperandAndAdvance(Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageSlot)));
                 });
 
             matcher
                 .Start()
-                .MatchStartForward(new CodeMatch(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.CheckProductAvailability))))
+                .MatchStartForward
+                (
+                    new(OpCodes.Ldarg_0), 
+                    new(OpCodes.Call, Method(typeof(NPC_Manager), nameof(NPC_Manager.CheckProductAvailability)))
+                )
                 .Repeat(matcher =>
                 {
-                    matcher.InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_0));
+                    matcher.RemoveInstruction();
                     matcher.SetOperandAndAdvance(Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetProductToRestock)));
                 });
 
             // Restocker tasks
-            if (ModEntry.RestockerTasks)
+            if (ModEntry.RestockerTasks.Value)
             {
                 matcher
                     .Start()

@@ -43,8 +43,8 @@ namespace BetterEmployees.Extensions
                 Data_Container storage = storageManager.GetChild(childId).GetComponent<Data_Container>();
                 Tuple<int, StorageMode>? storageSlot = storage.GetEmptyStorageSlot(productId);
 
-                if (storageSlot is not null && storageSlot.Item2 <= ModEntry.StorageOrderEmployeeMode)
-                    emptyContainers.Add(childId, new(Vector3.Distance(employee.transform.position, storage.transform.position), storageSlot.Item2));
+                if (storageSlot is not null && storageSlot.Item2 <= ModEntry.EmployeeStorageMode.Value)
+                    emptyContainers.Add(childId, new(storageSlot.Item2, Vector3.Distance(employee.transform.position, storage.transform.position)));
             }
 
             emptyContainers = emptyContainers
@@ -79,7 +79,7 @@ namespace BetterEmployees.Extensions
             return -1;
         }
 
-        public static int[] GetProductToRestock(this NPC_Info employee)
+        public static int[] GetProductToRestock()
         {
             NPC_Manager npcManager = NPC_Manager.Instance;
             Transform storageParent = npcManager.storageOBJ.transform;
@@ -99,7 +99,7 @@ namespace BetterEmployees.Extensions
 
                 for (int shelfProductIndex = 0; shelfProductIndex < shelfProductsCount; shelfProductIndex++)
                 {
-                    if (ModEntry.RestockerTasks && RestockingTask.Exists(shelfId, shelfProductIndex * 2))
+                    if (ModEntry.RestockerTasks.Value && RestockingTask.Exists(shelfId, shelfProductIndex * 2))
                         continue;
 
                     int productID = shelfProducts[shelfProductIndex * 2];
@@ -151,7 +151,7 @@ namespace BetterEmployees.Extensions
                 sameResults.ToList().ForEach(result2 => results[resultIndex] = new Tuple<float, int[]>(average, result2.Item2));
             }
 
-            if (ModEntry.RestockerProductPriority)
+            if (ModEntry.RestockerProductPriority.Value)
                 results = [.. results.OrderBy(result2 => result2.Item1)];
 
             return results.FirstOrDefault()?.Item2 ?? [-1, -1, -1, -1, -1, -1];
