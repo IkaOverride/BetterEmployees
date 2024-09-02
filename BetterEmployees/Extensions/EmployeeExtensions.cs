@@ -49,7 +49,7 @@ namespace BetterEmployees.Extensions
 
             emptyContainers = emptyContainers
                 .OrderBy(container => container.Value.Distance)
-                .OrderBy(container => container.Value.EmptySlotMode)
+                .OrderBy(container => container.Value.BestSlotMode)
                 .ToDictionary(x => x.Key, x => x.Value);
 
             if (emptyContainers.Count == 0)

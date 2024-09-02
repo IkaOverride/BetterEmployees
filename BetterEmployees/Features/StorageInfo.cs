@@ -2,13 +2,13 @@
 
 namespace BetterEmployees.Features
 {
-    public class StorageInfo(StorageMode emptySlotMode, float distance)
+    public class StorageInfo(StorageMode bestSlotMode, float distance)
     {
-        public StorageMode EmptySlotMode = emptySlotMode;
+        public StorageMode BestSlotMode = bestSlotMode;
 
         public float Distance = distance;
 
         public override string ToString() =>
-            $"({EmptySlotMode}.{Distance})";
+            $"({BestSlotMode}.{Distance})";
     }
 }
