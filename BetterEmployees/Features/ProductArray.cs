@@ -6,12 +6,6 @@ namespace BetterEmployees.Features
     {
         private static Dictionary<Data_Container, int[]> List = [];
 
-        public static void Add(Data_Container container)
-        {
-            if (!List.ContainsKey(container))
-                List.Add(container, [.. container.productInfoArray]);
-        }
-
         public static int[] Get(Data_Container container)
         {
             if (!List.ContainsKey(container))

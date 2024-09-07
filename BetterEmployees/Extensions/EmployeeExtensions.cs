@@ -26,6 +26,16 @@ namespace BetterEmployees.Extensions
             return GetEmptyStorageContainer(employee, productId);
         }
 
+        public static int GetEmptyStorageContainerWithBox(this NPC_Info employee, int boxId)
+        {
+            Transform boxes = NPC_Manager.Instance.boxesOBJ.transform;
+
+            if (boxId < 0 || boxId >= boxes.childCount)
+                return -1;
+
+            return GetEmptyStorageContainer(employee, boxes.GetChild(boxId).gameObject.GetComponent<BoxData>().productID);
+        }
+
         public static int GetEmptyStorageContainer(this NPC_Info employee, int productId)
         {
             if (productId == -1)

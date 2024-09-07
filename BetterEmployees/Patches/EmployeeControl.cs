@@ -63,7 +63,7 @@ namespace BetterEmployees.Patches
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Dup))
                 .Advance(1)
                 .RemoveInstructions(2)
-                .Insert(new CodeInstruction(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageContainer), [typeof(NPC_Info), typeof(int)])));
+                .Insert(new CodeInstruction(OpCodes.Call, Method(typeof(EmployeeExtensions), nameof(EmployeeExtensions.GetEmptyStorageContainerWithBox), [typeof(NPC_Info), typeof(int)])));
             
             // Restockers check for empty containers
             matcher
